@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const { promisify } = require('util')
 const git = require('simple-git')(__dirname)
 const semver = require('semver')
 const camelcase = require('camelcase')
@@ -10,10 +11,18 @@ const { paragraph } = require('txtgen')
 const { token } = require('./secrets.json')
 const pkg = require('./package.json')
 const { name, version: oldVersion } = pkg
+const channels = ['default', 'VendorA', 'VendorB']
 
 const releaseTypes = [
-  `major`, `premajor`, `minor`, `preminor`, `patch`, `prepatch`, `prerelease`
+  `major`,
+  `premajor`,
+  `minor`,
+  `preminor`,
+  `patch`,
+  `prepatch`,
+  `prerelease`
 ]
+
 const randomValFromArray = (array) => {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -40,52 +49,65 @@ git.add(['package.json'], (err) => {
   })
 })
 
-const assets = [
-  `${name}-${version}-delta.nupkg`,
-  `${name}-${version}-full.nupkg`,
-  `${name}-amd64.deb`,
-  `${name}-amd64.tar.gz`,
-  `${name}-api.json`,
-  `${name}-mac-symbols.zip`,
-  `${name}-mac.zip`,
-  `${name}-windows.zip`,
-  `${name}-x64-${version}-delta.nupkg`,
-  `${name}-x64-${version}-full.nupkg`,
-  `${name}-x64-windows.zip`,
-  `${name}.x86_64.rpm`,
-  `${camelcase(name)}-x64.exe`,
-  `${camelcase(name)}.exe`,
-  `RELEASES`,
-  `RELEASES-x64`
-]
+const publishChannel = async (channel) => {
+  const tmpVersion = channel === 'default' ? version : `${version}+${channel}`
+  const assets = [
+    `${name}-${tmpVersion}-delta.nupkg`,
+    `${name}-${tmpVersion}-full.nupkg`,
+    `${name}-amd64.deb`,
+    `${name}-amd64.tar.gz`,
+    `${name}-api.json`,
+    `${name}-mac-symbols.zip`,
+    `${name}-mac.zip`,
+    `${name}-windows.zip`,
+    `${name}-x64-${tmpVersion}-delta.nupkg`,
+    `${name}-x64-${tmpVersion}-full.nupkg`,
+    `${name}-x64-windows.zip`,
+    `${name}.x86_64.rpm`,
+    `${camelcase(name, { pascalCase: true })}-x64.exe`,
+    `${camelcase(name, { pascalCase: true })}.exe`,
+    `RELEASES`,
+    `RELEASES-x64`
+  ]
 
-for (const fname of fs.readdirSync(assetsDir)) fs.unlinkSync(assetPath(fname))
+  const assetsOut = []
+  for (const asset of assets) {
+    const filePath = assetPath(asset)
+    fs.writeFileSync(filePath, '~')
+    assetsOut.push(filePath)
+  }
 
-const assetsOut = []
-for (const asset of assets) {
-  const filePath = assetPath(asset)
-  fs.writeFileSync(filePath, '~')
-  assetsOut.push(filePath)
+  await promisify(publishRelease)({
+    token,
+    owner: 'doesdev',
+    repo: name,
+    tag: tmpVersion,
+    name: `${name} v${tmpVersion}`,
+    notes: paragraph(randomValFromArray([2, 3, 4, 5])),
+    draft: false,
+    prerelease: releaseType.slice(0, 3) === 'pre',
+    reuseRelease: true,
+    reuseDraftOnly: true,
+    skipAssetsCheck: false,
+    skipDuplicatedAssets: true,
+    skipIfPublished: true,
+    editRelease: false,
+    deleteEmptyTag: false,
+    assets: assetsOut,
+    target_commitish: 'master'
+  })
+
+  for (const fname of fs.readdirSync(assetsDir)) fs.unlinkSync(assetPath(fname))
 }
 
-const done = (err, release) => { console.log(err || release) }
+const main = async () => {
+  for (const channel of channels) {
+    try {
+      await publishChannel(channel)
+    } catch (ex) {
+      console.error(ex)
+    }
+  }
+}
 
-publishRelease({
-  token,
-  owner: 'doesdev',
-  repo: name,
-  tag: version,
-  name: `${name} v${version}`,
-  notes: paragraph(randomValFromArray([2, 3, 4, 5])),
-  draft: false,
-  prerelease: releaseType.slice(0, 3) === 'pre',
-  reuseRelease: true,
-  reuseDraftOnly: true,
-  skipAssetsCheck: false,
-  skipDuplicatedAssets: true,
-  skipIfPublished: true,
-  editRelease: false,
-  deleteEmptyTag: false,
-  assets: assetsOut,
-  target_commitish: 'master'
-}, done)
+main()
