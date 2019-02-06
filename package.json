@@ -1,6 +1,6 @@
 {
   "name": "oneclick-release-test",
-  "version": "5.0.0-0",
+  "version": "5.0.0-1",
   "description": "Just a repo to test release strategies",
   "main": "index.js",
   "private": true,
