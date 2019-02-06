@@ -1,0 +1,28 @@
+{
+  "name": "oneclick-release-test",
+  "version": "1.0.0",
+  "description": "Just a repo to test release strategies",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doesdev/oneclick-release-test.git"
+  },
+  "author": "Andrew Carpenter (https://github.com/doesdev)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/doesdev/oneclick-release-test/issues"
+  },
+  "homepage": "https://github.com/doesdev/oneclick-release-test#readme",
+  "devDependencies": {
+    "camelcase": "^5.0.0"
+  },
+  "dependencies": {
+    "publish-release": "^1.6.0",
+    "semver": "^5.6.0",
+    "txtgen": "^2.2.2"
+  }
+}
