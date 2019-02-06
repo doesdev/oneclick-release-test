@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const git = require('simple-git')(__dirname)
 const semver = require('semver')
 const camelcase = require('camelcase')
 const publishRelease = require('publish-release')
@@ -29,6 +30,15 @@ const assetsDir = path.join(__dirname, 'assets')
 const assetPath = (asset) => path.join(assetsDir, asset)
 
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2), 'utf8')
+git.add(['package.json'], (err) => {
+  if (err) throw err
+  git.commit(`Release version ${version}`, (err) => {
+    if (err) throw err
+    git.push('origin', (err) => {
+      if (err) throw err
+    })
+  })
+})
 
 const assets = [
   `${name}-${version}-delta.nupkg`,
