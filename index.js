@@ -66,6 +66,7 @@ const publishChannel = async (channel) => {
     `${name}.x86_64.rpm`,
     `${camelcase(name, { pascalCase: true })}-x64.exe`,
     `${camelcase(name, { pascalCase: true })}.exe`,
+    `${camelcase(name, { pascalCase: true })}.dmg`,
     `RELEASES`,
     `RELEASES-x64`
   ]
