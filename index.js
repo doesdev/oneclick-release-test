@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const crypto = require('crypto')
 const { promisify } = require('util')
 const git = require('simple-git')(__dirname)
 const semver = require('semver')
@@ -12,6 +13,22 @@ const { token } = require('./secrets.json')
 const pkg = require('./package.json')
 const { name, version: oldVersion } = pkg
 const channels = ['default', 'VendorA', 'VendorB']
+const BOM = String.fromCharCode(0xFEFF)
+
+const getHashAndSize = (file) => new Promise((resolve, reject) => {
+  let size = 0
+  const hasher = crypto.createHash('sha1', { encoding: 'hex' })
+  const filestream = fs.createReadStream(file)
+
+  filestream.pipe(hasher)
+  filestream.on('data', (d) => { size += d.length })
+  filestream.on('end', () => {
+    hasher.end()
+    const hash = hasher.read()
+
+    return resolve({ hash, size })
+  })
+})
 
 const releaseTypes = [
   `major`,
@@ -66,9 +83,7 @@ const publishChannel = async (channel) => {
     `${name}.x86_64.rpm`,
     `${camelcase(name, { pascalCase: true })}-x64.exe`,
     `${camelcase(name, { pascalCase: true })}.exe`,
-    `${camelcase(name, { pascalCase: true })}.dmg`,
-    `RELEASES`,
-    `RELEASES-x64`
+    `${camelcase(name, { pascalCase: true })}.dmg`
   ]
 
   const assetsOut = []
@@ -76,6 +91,24 @@ const publishChannel = async (channel) => {
     const filePath = assetPath(asset)
     fs.writeFileSync(filePath, '~')
     assetsOut.push(filePath)
+  }
+
+  const releases = [
+    {
+      fileIn: `${name}-${tmpVersion}-full.nupkg`,
+      fileOut: 'RELEASES'
+    },
+    {
+      fileIn: `${name}-x64-${tmpVersion}-full.nupkg`,
+      fileOut: 'RELEASES-x64'
+    }
+  ]
+  for (const { fileIn, fileOut } of releases) {
+    const filePathIn = assetPath(fileIn)
+    const filePathOut = assetPath(fileOut)
+    const { hash, size } = await getHashAndSize(filePathIn)
+    fs.writeFileSync(filePathOut, `${BOM}${hash} ${fileIn} ${size}`, 'utf8')
+    assetsOut.push(filePathOut)
   }
 
   await promisify(publishRelease)({
@@ -109,6 +142,8 @@ const main = async () => {
       console.error(ex)
     }
   }
+
+  console.log('Everything is published')
 }
 
 main()
