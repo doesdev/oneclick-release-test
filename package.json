@@ -18,11 +18,12 @@
   },
   "homepage": "https://github.com/doesdev/oneclick-release-test#readme",
   "devDependencies": {},
-  "dependencies": {
-    "camelcase": "^5.0.0",
+  "dependencies": {},
+  "optionalDependencies": {
+    "camelcase": "^5.3.1",
     "publish-release": "^1.6.0",
-    "semver": "^5.6.0",
-    "simple-git": "^1.107.0",
+    "semver": "^6.3.0",
+    "simple-git": "^1.124.0",
     "txtgen": "^2.2.2"
   }
 }
