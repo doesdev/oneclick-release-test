@@ -1,6 +1,6 @@
 {
   "name": "oneclick-release-test",
-  "version": "7.2.0",
+  "version": "7.2.1-0",
   "description": "Just a repo to test release strategies",
   "main": "index.js",
   "private": true,
@@ -20,10 +20,10 @@
   "devDependencies": {},
   "dependencies": {},
   "optionalDependencies": {
-    "camelcase": "^5.3.1",
-    "publish-release": "^1.6.0",
-    "semver": "^6.3.0",
-    "simple-git": "^1.124.0",
-    "txtgen": "^2.2.2"
+    "camelcase": "^6.0.0",
+    "publish-release": "^1.6.1",
+    "semver": "^7.3.2",
+    "simple-git": "^2.13.2",
+    "txtgen": "^2.2.6"
   }
 }
