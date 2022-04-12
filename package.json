@@ -23,7 +23,7 @@
     "camelcase": "^6.0.0",
     "publish-release": "^1.6.1",
     "semver": "^7.3.2",
-    "simple-git": "^2.13.2",
+    "simple-git": "^3.5.0",
     "txtgen": "^2.2.6"
   }
 }
